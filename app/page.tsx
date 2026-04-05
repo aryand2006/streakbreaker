@@ -150,10 +150,11 @@ export default function LandingPage() {
           className="relative z-10 flex flex-col items-center gap-8"
         >
           <h1
-            className="text-6xl font-extrabold tracking-tight sm:text-8xl md:text-9xl bg-clip-text text-transparent bg-gradient-to-r from-[#BFFF00] via-[#00E5FF] to-[#A855F7] animate-gradient-x"
+            className="font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#BFFF00] via-[#00E5FF] to-[#A855F7] animate-gradient-x"
             style={{
               backgroundSize: "200% 200%",
               animation: "gradient-shift 4s ease infinite",
+              fontSize: "clamp(2.25rem, 10vw, 8rem)",
             }}
           >
             STREAKBREAKER

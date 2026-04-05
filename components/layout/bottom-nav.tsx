@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
 
 const NAV_ITEMS = [
-  { label: "Today", icon: Zap, href: "/today" },
-  { label: "React", icon: Heart, href: "/react" },
   { label: "Feed", icon: Newspaper, href: "/feed" },
+  { label: "React", icon: Heart, href: "/react" },
+  { label: "Today", icon: Zap, href: "/today" },
   { label: "Friends", icon: Users, href: "/friends" },
   { label: "Profile", icon: User, href: "/profile" },
 ] as const;
