@@ -27,14 +27,14 @@ const FLOAT_EMOJIS = REALMS.map((r) => r.emoji);
 
 function FloatingEmojis() {
   const [particles] = useState(() =>
-    Array.from({ length: 24 }, (_, i) => ({
+    Array.from({ length: 20 }, (_, i) => ({
       id: i,
       emoji: FLOAT_EMOJIS[i % FLOAT_EMOJIS.length],
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: 16 + Math.random() * 20,
+      size: 16 + Math.random() * 18,
       delay: Math.random() * 8,
-      duration: 12 + Math.random() * 10,
+      duration: 14 + Math.random() * 10,
     }))
   );
 
@@ -43,7 +43,7 @@ function FloatingEmojis() {
       {particles.map((p) => (
         <motion.span
           key={p.id}
-          className="absolute select-none opacity-[0.07]"
+          className="absolute select-none opacity-[0.05]"
           style={{ left: `${p.x}%`, top: `${p.y}%`, fontSize: p.size }}
           animate={{
             y: [0, -40, 0, 40, 0],
@@ -64,31 +64,65 @@ function FloatingEmojis() {
   );
 }
 
-/* ---------- step card ---------- */
+/* ---------- how it works steps ---------- */
 const STEPS = [
   {
-    emoji: "🌀",
-    title: "Get Your Realm",
-    desc: "Each day, you're assigned a vibe category",
-    color: "#A855F7",
-  },
-  {
     emoji: "🎯",
-    title: "Choose Your Task",
-    desc: "Go random, pick your own, or let a friend decide",
+    title: "Pick a task",
+    desc: "Go random, choose your own, or let a friend decide for you.",
     color: "#BFFF00",
   },
   {
     emoji: "📸",
-    title: "Upload Your Receipt",
-    desc: "Prove you did it. Photo or text.",
+    title: "Post a receipt",
+    desc: "Prove you did it. Photo, text, or selfie.",
     color: "#00E5FF",
   },
   {
     emoji: "🔥",
-    title: "React & Spread",
-    desc: "Swipe on friends. Copy their moves. Start trends.",
-    color: "#FF3366",
+    title: "Friends react",
+    desc: "Swipe on friends' receipts. Hype them up or challenge them.",
+    color: "#FF6B8A",
+  },
+  {
+    emoji: "🔗",
+    title: "Start a chain",
+    desc: "Hit \"I'm in\" on someone's task. Watch it spread.",
+    color: "#A855F7",
+  },
+];
+
+/* ---------- features ---------- */
+const FEATURES = [
+  {
+    emoji: "✨",
+    title: "Feeling Lucky",
+    desc: "Random task from the full pool. No thinking, just doing.",
+    color: "#BFFF00",
+  },
+  {
+    emoji: "🔍",
+    title: "Pick My Own",
+    desc: "Browse tasks by realm. Find what fits your energy.",
+    color: "#38BDF8",
+  },
+  {
+    emoji: "👥",
+    title: "Ask a Friend",
+    desc: "Let someone else choose your problem.",
+    color: "#FF6B8A",
+  },
+  {
+    emoji: "🚀",
+    title: "I'm In chains",
+    desc: "Join someone's task. Build social momentum.",
+    color: "#A78BFA",
+  },
+  {
+    emoji: "🤝",
+    title: "Weekly friend tasks",
+    desc: "Paired challenges inside your circles every week.",
+    color: "#FB923C",
   },
 ];
 
@@ -107,8 +141,7 @@ export default function LandingPage() {
       <section className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <FloatingEmojis />
 
-        {/* gradient orb */}
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#BFFF00]/10 via-[#A855F7]/10 to-[#FF3366]/10 blur-[120px]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-[#BFFF00]/8 via-[#A855F7]/6 to-[#FF3366]/6 blur-[120px]" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.92 }}
@@ -127,16 +160,16 @@ export default function LandingPage() {
           </h1>
 
           <motion.p
-            className="max-w-md text-lg text-[#71717A] font-medium sm:text-xl"
+            className="max-w-md text-lg text-[#71717A] font-medium sm:text-xl leading-relaxed"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            Break the streak of sameness.
+            Break routine. Post proof. Let your friends decide.
           </motion.p>
 
           <motion.div
-            className="mt-6 flex flex-col gap-4 sm:flex-row sm:gap-4"
+            className="mt-4 flex flex-col gap-4 sm:flex-row sm:gap-4"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.6 }}
@@ -149,7 +182,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/today"
-              className="inline-flex h-14 items-center justify-center rounded-full border border-white/[0.06] px-10 text-sm font-semibold text-[#F0F0F5] transition-all hover:border-white/[0.12] hover:bg-white/5 active:scale-95"
+              className="inline-flex h-14 items-center justify-center rounded-full border border-white/[0.06] px-10 text-sm font-semibold text-[#F0F0F5] transition-all hover:border-white/10 hover:bg-white/[0.03] active:scale-95"
             >
               Skip to App
             </Link>
@@ -163,17 +196,17 @@ export default function LandingPage() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           <div className="h-10 w-6 rounded-full border-2 border-white/[0.06] flex items-start justify-center pt-2">
-            <div className="h-2 w-1 rounded-full bg-white/40" />
+            <div className="h-2 w-1 rounded-full bg-white/30" />
           </div>
         </motion.div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="relative py-32 px-6">
+      <section className="relative py-28 px-6">
         <div className="mx-auto max-w-3xl">
           <SectionHeading>How it works</SectionHeading>
 
-          <div className="mt-16 grid grid-cols-1 gap-0 sm:grid-cols-4 sm:gap-6">
+          <div className="mt-14 grid grid-cols-1 gap-0 sm:grid-cols-4 sm:gap-6">
             {STEPS.map((step, i) => (
               <motion.div
                 key={step.title}
@@ -183,33 +216,24 @@ export default function LandingPage() {
                 transition={{ delay: i * 0.12, duration: 0.5 }}
                 className="relative flex flex-col items-center text-center"
               >
-                {/* connector line (not on first) */}
                 {i > 0 && (
-                  <div className="hidden sm:block absolute -left-2 top-8 h-px w-4 bg-gradient-to-r from-white/10 to-white/5" />
+                  <div className="hidden sm:block absolute -left-2 top-8 h-px w-4 bg-gradient-to-r from-white/8 to-white/4" />
                 )}
-
-                {/* mobile connector */}
                 {i > 0 && (
-                  <div className="sm:hidden mx-auto mb-4 h-8 w-px bg-gradient-to-b from-white/[0.06] to-transparent" />
+                  <div className="sm:hidden mx-auto mb-4 h-6 w-px bg-gradient-to-b from-white/[0.04] to-transparent" />
                 )}
 
                 <div
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl"
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
                   style={{
-                    background: `${step.color}1A`,
-                    border: `1px solid ${step.color}1A`,
+                    background: `${step.color}10`,
+                    border: `1px solid ${step.color}12`,
                   }}
                 >
                   {step.emoji}
                 </div>
 
-                <span
-                  className="mt-2 text-[10px] font-semibold uppercase tracking-widest"
-                  style={{ color: step.color }}
-                >
-                  Step {i + 1}
-                </span>
-                <h3 className="mt-2 text-base font-bold text-[#F0F0F5]">{step.title}</h3>
+                <h3 className="mt-3 text-base font-bold text-[#F0F0F5]">{step.title}</h3>
                 <p className="mt-1 text-sm text-[#71717A] font-medium leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
@@ -217,9 +241,49 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── FEATURES EXPLAINED ── */}
+      <section className="relative py-24 px-6">
+        <div className="mx-auto max-w-3xl">
+          <SectionHeading>The ways to play</SectionHeading>
+          <motion.p
+            className="mt-3 text-center text-sm text-[#71717A] max-w-md mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            Multiple ways to break your patterns. Pick one.
+          </motion.p>
+
+          <div className="mt-12 flex flex-col gap-3">
+            {FEATURES.map((feat, i) => (
+              <motion.div
+                key={feat.title}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                className="flex items-center gap-4 rounded-xl bg-[#141418] p-4"
+                style={{ border: `1px solid ${feat.color}08` }}
+              >
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                  style={{ background: `${feat.color}10` }}
+                >
+                  {feat.emoji}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#F0F0F5]">{feat.title}</h4>
+                  <p className="text-xs text-[#71717A] mt-0.5">{feat.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── SOCIAL PROOF ── */}
-      <section className="relative py-28 px-6">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#BFFF00]/[0.02] to-transparent" />
+      <section className="relative py-24 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#BFFF00]/[0.015] to-transparent" />
         <div className="relative mx-auto max-w-3xl">
           <div className="flex flex-col items-center gap-12 sm:flex-row sm:justify-between">
             {STATS.map((stat, i) => (
@@ -244,11 +308,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── REALM PREVIEW ── */}
-      <section className="relative py-32 px-6">
+      <section className="relative py-28 px-6">
         <div className="mx-auto max-w-4xl">
           <SectionHeading>8 Realms of Chaos</SectionHeading>
 
-          <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-4">
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3">
             {REALMS.map((realm, i) => (
               <motion.div
                 key={realm.slug}
@@ -256,15 +320,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: "-20px" }}
                 transition={{ delay: i * 0.06, duration: 0.4 }}
-                whileHover={{
-                  scale: 1.05,
-                }}
-                className="group relative flex flex-col items-center gap-3 rounded-2xl bg-[#141418] p-6 transition-colors"
+                whileHover={{ scale: 1.04 }}
+                className="group relative flex flex-col items-center gap-2 rounded-xl bg-[#141418] p-5 transition-colors"
                 style={{
-                  border: `1px solid ${realm.accentHex}1A`,
+                  border: `1px solid ${realm.accentHex}10`,
                 }}
               >
-                <span className="text-3xl">{realm.emoji}</span>
+                <span className="text-2xl">{realm.emoji}</span>
                 <span className="text-sm font-bold" style={{ color: realm.accentHex }}>
                   {realm.name}
                 </span>
@@ -278,23 +340,22 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="relative py-20 px-6 text-center">
+      <footer className="relative py-16 px-6 text-center">
         <div className="mx-auto max-w-2xl">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-lg font-semibold text-[#71717A]"
+            className="text-base font-semibold text-[#71717A]"
           >
             Built for the curious. Played by the unhinged.
           </motion.p>
-          <p className="mt-4 text-xs text-[#71717A]/50">
+          <p className="mt-3 text-xs text-[#71717A]/40">
             Streakbreaker &mdash; a social anti-routine game
           </p>
         </div>
       </footer>
 
-      {/* Gradient keyframes */}
       <style jsx global>{`
         @keyframes gradient-shift {
           0%,

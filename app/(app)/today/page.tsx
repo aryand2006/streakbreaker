@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 import { Upload, Clock, AlertTriangle, Bell } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
 import { REALM_MAP, VIBE_CONFIG, SOCIAL_RISK_LABELS } from "@/lib/constants";
-import { RealmCard } from "@/components/streakbreaker/today/realm-card";
 import { ActionButtons } from "@/components/streakbreaker/today/action-buttons";
 import { StatsBar } from "@/components/streakbreaker/today/stats-bar";
 import { FriendActivity } from "@/components/streakbreaker/today/friend-activity";
@@ -14,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 const WITTY_HEADERS = [
-  "Today feels suspiciously predictable.",
+  "Pick today's break.",
   "Another day, another pattern to break.",
   "Your comfort zone called. We hung up.",
   "Routine is just fear wearing a schedule.",
@@ -40,57 +39,37 @@ function getDailyHeader() {
 function TodaySkeleton() {
   return (
     <div className="space-y-6 pb-24">
-      {/* Header skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-3 w-40 bg-white/[0.06]" />
         <Skeleton className="h-5 w-64 bg-white/[0.06]" />
       </div>
-
-      {/* Realm card skeleton */}
-      <Skeleton className="h-64 w-full rounded-3xl bg-white/[0.06]" />
-
-      {/* Action buttons skeleton */}
       <div className="flex flex-col gap-3">
         <Skeleton className="h-14 w-full rounded-2xl bg-white/[0.06]" />
         <Skeleton className="h-14 w-full rounded-2xl bg-white/[0.04]" />
         <Skeleton className="h-14 w-full rounded-2xl bg-white/[0.04]" />
       </div>
-
-      {/* Stats bar skeleton */}
       <div className="flex justify-between gap-3">
         <Skeleton className="h-16 flex-1 rounded-xl bg-white/[0.06]" />
         <Skeleton className="h-16 flex-1 rounded-xl bg-white/[0.06]" />
         <Skeleton className="h-16 flex-1 rounded-xl bg-white/[0.06]" />
-      </div>
-
-      {/* Friend activity skeleton */}
-      <div className="space-y-3">
-        <Skeleton className="h-4 w-28 bg-white/[0.06]" />
-        <div className="flex gap-3">
-          <Skeleton className="h-20 w-[220px] shrink-0 rounded-xl bg-white/[0.06]" />
-          <Skeleton className="h-20 w-[220px] shrink-0 rounded-xl bg-white/[0.06]" />
-        </div>
       </div>
     </div>
   );
 }
 
 export default function TodayPage() {
-  const todayRealm = useAppStore((s) => s.todayRealm);
+  const currentUser = useAppStore((s) => s.currentUser);
   const todayTask = useAppStore((s) => s.todayTask);
-  const taskSource = useAppStore((s) => s.taskSource);
   const notifications = useAppStore((s) => s.notifications);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  if (!todayRealm) {
+  if (!currentUser) {
     return <TodaySkeleton />;
   }
 
-  const realm = REALM_MAP[todayRealm.slug];
-
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-8 pb-24">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -110,7 +89,7 @@ export default function TodayPage() {
         {/* Notification bell */}
         <Link
           href="/notifications"
-          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] transition-colors hover:bg-white/[0.1]"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.04] transition-colors hover:bg-white/[0.08]"
         >
           <Bell className="h-4.5 w-4.5 text-[#71717A]" />
           {unreadCount > 0 && (
@@ -120,9 +99,6 @@ export default function TodayPage() {
           )}
         </Link>
       </motion.div>
-
-      {/* Realm Card - Hero */}
-      <RealmCard realm={realm} />
 
       {/* Task Card OR Action Buttons */}
       {todayTask ? (
@@ -157,14 +133,14 @@ function TaskCard() {
       transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.15 }}
       className="relative overflow-hidden rounded-2xl bg-[#141418]"
       style={{
-        border: `1px solid ${realm.accentHex}1A`,
+        border: `1px solid ${realm.accentHex}12`,
       }}
     >
       {/* Subtle top accent */}
       <div
-        className="h-1 w-full"
+        className="h-0.5 w-full"
         style={{
-          background: `linear-gradient(90deg, ${realm.accentHex}, ${realm.accentHex}66)`,
+          background: `linear-gradient(90deg, ${realm.accentHex}80, ${realm.accentHex}20)`,
         }}
       />
 
@@ -201,11 +177,10 @@ function TaskCard() {
         <div className="flex flex-wrap items-center gap-2">
           <RealmBadge slug={todayTask.realmSlug} size="sm" />
 
-          {/* Vibe badge */}
           <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
             style={{
-              backgroundColor: `${vibe.color}1A`,
+              backgroundColor: `${vibe.color}12`,
               color: vibe.color,
             }}
           >
@@ -213,16 +188,11 @@ function TaskCard() {
             <span>{vibe.label}</span>
           </span>
 
-          {/* Social risk */}
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              "bg-white/[0.06] text-[#71717A]"
-            )}
-          >
-            <AlertTriangle className="h-3 w-3" />
-            <span>{riskLabel}</span>
-          </span>
+          {todayTask.chainPotential === "high" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#A78BFA]/10 px-2 py-0.5 text-xs font-medium text-[#A78BFA]">
+              🔗 Chain potential
+            </span>
+          )}
         </div>
 
         {/* Meta row */}
@@ -230,10 +200,6 @@ function TaskCard() {
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
             {todayTask.timeEstimate}
-          </span>
-          <span className="text-[#71717A]/30">|</span>
-          <span>
-            Proof: {todayTask.proofSuggestion}
           </span>
         </div>
 

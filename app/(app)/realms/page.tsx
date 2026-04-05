@@ -84,23 +84,23 @@ export default function RealmsPage() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-12 w-12 items-center justify-center rounded-xl text-xl"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
                     style={{
-                      background: `${realm.accentHex}1A`,
-                      border: `1px solid ${realm.accentHex}33`,
+                      background: `${realm.accentHex}10`,
+                      border: `1px solid ${realm.accentHex}15`,
                     }}
                   >
                     {realm.emoji}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold" style={{ color: realm.accentHex }}>
+                    <h3 className="text-sm font-bold" style={{ color: realm.accentHex }}>
                       {realm.name}
                     </h3>
                     <p className="text-xs text-[#71717A]">{realm.tagline}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[#71717A] tabular-nums">
-                      {realmTasks.length} tasks
+                      {realmTasks.length}
                     </span>
                     {isExpanded ? (
                       <ChevronUp className="h-4 w-4 text-[#71717A]" />
@@ -109,6 +109,17 @@ export default function RealmsPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Featured tasks preview when collapsed */}
+                {!isExpanded && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {realmTasks.slice(0, 3).map((t) => (
+                      <span key={t.id} className="rounded-full bg-white/[0.03] px-2.5 py-1 text-[11px] text-[#71717A]">
+                        {t.title.length > 28 ? t.title.slice(0, 28) + "..." : t.title}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </motion.button>
 
               {/* Expanded task list */}

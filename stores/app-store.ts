@@ -11,6 +11,11 @@ interface AppState {
   taskSource: TaskSource;
   taskCompleted: boolean;
 
+  // Feed lock
+  feedUnlocked: boolean;
+  todayReceiptSubmitted: boolean;
+  lastSubmittedReceiptId: string | null;
+
   // Swipe deck
   swipeDeck: Receipt[];
   swipedReceiptIds: string[];
@@ -36,7 +41,9 @@ interface AppState {
   setCurrentUser: (user: User) => void;
   setTodayRealm: (realm: Realm) => void;
   setTodayTask: (task: Task, source: TaskSource) => void;
+  clearTask: () => void;
   completeTask: () => void;
+  unlockFeed: () => void;
 
   swipeReaction: (receiptId: string, reaction: ReactionType) => void;
   cloneTask: (receiptId: string) => void;
@@ -76,6 +83,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   todayTask: null,
   taskSource: null,
   taskCompleted: false,
+  feedUnlocked: false,
+  todayReceiptSubmitted: false,
+  lastSubmittedReceiptId: null,
   swipeDeck: [],
   swipedReceiptIds: [],
   users: [],
@@ -94,6 +104,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTodayRealm: (realm) => set({ todayRealm: realm }),
 
   setTodayTask: (task, source) => set({ todayTask: task, taskSource: source, taskCompleted: false }),
+
+  clearTask: () => set({ todayTask: null, taskSource: null, taskCompleted: false }),
+
+  unlockFeed: () => set({ feedUnlocked: true }),
 
   completeTask: () => set((state) => {
     if (!state.currentUser) return state;
@@ -176,6 +190,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addReceipt: (receipt) => set((state) => ({
     receipts: [receipt, ...state.receipts],
+    feedUnlocked: true,
+    todayReceiptSubmitted: true,
+    lastSubmittedReceiptId: receipt.id,
   })),
 
   markNotificationRead: (id) => set((state) => ({
@@ -222,5 +239,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     taskSource: null,
     todayTask: null,
     taskCompleted: false,
+    feedUnlocked: false,
+    todayReceiptSubmitted: false,
+    lastSubmittedReceiptId: null,
   }),
 }));

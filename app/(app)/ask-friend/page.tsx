@@ -32,7 +32,6 @@ export default function AskFriendPage() {
   const router = useRouter();
   const users = useAppStore((s) => s.users);
   const currentUser = useAppStore((s) => s.currentUser);
-  const todayRealm = useAppStore((s) => s.todayRealm);
   const setTodayTask = useAppStore((s) => s.setTodayTask);
 
   const [flowState, setFlowState] = useState<FlowState>("select");
@@ -48,13 +47,10 @@ export default function AskFriendPage() {
     );
   }, [users, currentUser]);
 
-  // Available tasks for friend-picking in current realm
+  // Available tasks for friend-picking from full pool
   const friendPickTasks = useMemo(() => {
-    if (!todayRealm) return [];
-    return TASKS.filter(
-      (t) => t.realmSlug === todayRealm.slug && t.canBeFriendPicked
-    );
-  }, [todayRealm]);
+    return TASKS.filter((t) => t.canBeFriendPicked);
+  }, []);
 
   function handleSelectFriend(friend: User) {
     setSelectedFriend(friend);
@@ -139,7 +135,7 @@ function SelectFriendView({
       className="p-4"
     >
       <p className="mb-6 text-center text-sm text-muted-foreground">
-        Pick a friend to choose your task for you
+        Let someone else choose your problem.
       </p>
 
       <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">

@@ -2,22 +2,25 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import { ChevronRight, ChevronLeft, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
 import { REALM_MAP } from "@/lib/constants";
 import { PageHeader } from "@/components/layout/page-header";
-import { PodHeader } from "@/components/streakbreaker/friends/pod-header";
-import { MemberList } from "@/components/streakbreaker/friends/member-list";
+import { UserAvatar } from "@/components/streakbreaker/shared/user-avatar";
+import { RealmBadge } from "@/components/streakbreaker/shared/realm-badge";
 import { InviteCard } from "@/components/streakbreaker/friends/invite-card";
-import { DuoPairing } from "@/components/streakbreaker/friends/duo-pairing";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { FriendGroup } from "@/lib/types";
 
 export default function FriendsPage() {
   const currentUser = useAppStore((s) => s.currentUser);
   const users = useAppStore((s) => s.users);
   const groups = useAppStore((s) => s.groups);
   const duoPairings = useAppStore((s) => s.duoPairings);
+  const receipts = useAppStore((s) => s.receipts);
+  const tasks = useAppStore((s) => s.tasks);
+
+  const [selectedGroup, setSelectedGroup] = useState<FriendGroup | null>(null);
 
   if (!currentUser) {
     return (
@@ -27,151 +30,286 @@ export default function FriendsPage() {
     );
   }
 
-  // Groups the current user belongs to
-  const userGroups = groups.filter((g) =>
-    g.memberIds.includes(currentUser.id)
-  );
+  const userGroups = groups.filter((g) => g.memberIds.includes(currentUser.id));
 
-  // Compute quick stats for groups tab
-  const allGroupMemberIds = new Set(
-    userGroups.flatMap((g) => g.memberIds)
-  );
-  const groupMembers = users.filter((u) => allGroupMemberIds.has(u.id));
-  const totalGroupTasks = groupMembers.reduce(
-    (sum, u) => sum + u.stats.tasksCompleted,
-    0
-  );
+  // Group profile view
+  if (selectedGroup) {
+    const members = users.filter((u) => selectedGroup.memberIds.includes(u.id));
+    const groupReceipts = receipts
+      .filter((r) => selectedGroup.memberIds.includes(r.userId) && !r.isPrivate)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 6);
 
-  // Top realm: the one with the most tasks by finding most frequent vibe
-  const topRealm = "Food";
+    // Find trending task in this group
+    const taskCounts: Record<string, number> = {};
+    groupReceipts.forEach((r) => {
+      taskCounts[r.taskId] = (taskCounts[r.taskId] || 0) + 1;
+    });
+    const trendingTaskId = Object.entries(taskCounts).sort(([, a], [, b]) => b - a)[0]?.[0];
+    const trendingTask = trendingTaskId ? tasks.find((t) => t.id === trendingTaskId) : null;
 
+    // Weekly pair cards for this group
+    const groupDuos = duoPairings.filter(
+      (d) => d.userIds.every((uid) => selectedGroup.memberIds.includes(uid))
+    );
+
+    return (
+      <div className="flex flex-col pb-24">
+        {/* Back header */}
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <button
+            onClick={() => setSelectedGroup(null)}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.04] text-[#71717A] hover:bg-white/[0.08] transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <h1 className="text-lg font-bold text-[#F0F0F5]">
+            {selectedGroup.emoji} {selectedGroup.name}
+          </h1>
+        </div>
+
+        <div className="px-4 space-y-6">
+          {/* Group header card */}
+          <motion.div
+            className="rounded-2xl bg-[#141418] p-5 space-y-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-center">
+              <span className="text-5xl">{selectedGroup.emoji}</span>
+              <h2 className="mt-2 text-xl font-bold text-[#F0F0F5]">{selectedGroup.name}</h2>
+              <p className="text-sm text-[#71717A]">{members.length} members</p>
+            </div>
+
+            {/* Members */}
+            <div className="flex justify-center -space-x-2">
+              {members.slice(0, 8).map((m) => (
+                <div key={m.id} className="rounded-full ring-2 ring-[#141418]">
+                  <UserAvatar user={m} size="md" />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Trending task this week */}
+          {trendingTask && (
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#71717A]">
+                What this circle is doing this week
+              </h3>
+              <div className="rounded-xl bg-[#141418] p-4 flex items-center gap-3">
+                <RealmBadge slug={trendingTask.realmSlug} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#F0F0F5] truncate">{trendingTask.title}</p>
+                  <p className="text-xs text-[#71717A]">
+                    {taskCounts[trendingTask.id]} people did this
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Recent receipts */}
+          <motion.div
+            className="space-y-2"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#71717A]">
+              Recent receipts
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              {groupReceipts.map((r) => {
+                const user = users.find((u) => u.id === r.userId);
+                const task = tasks.find((t) => t.id === r.taskId);
+                const realm = task ? REALM_MAP[task.realmSlug] : null;
+                return (
+                  <div
+                    key={r.id}
+                    className="relative aspect-square overflow-hidden rounded-xl"
+                  >
+                    {r.photoImage ? (
+                      <img src={r.photoImage} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div
+                        className="h-full w-full"
+                        style={{ background: r.photoGradient }}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1">
+                      {user && <UserAvatar user={user} size="sm" />}
+                      <span className="text-[10px] font-medium text-white/80 truncate max-w-[60px]">
+                        {user?.displayName.split(" ")[0]}
+                      </span>
+                    </div>
+                    {realm && (
+                      <span className="absolute top-1.5 right-1.5 text-sm">{realm.emoji}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Weekly pair challenges */}
+          {groupDuos.length > 0 && (
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#71717A]">
+                Weekly pair challenges
+              </h3>
+              {groupDuos.map((pairing) => {
+                const [u1, u2] = pairing.userIds.map((uid) => users.find((u) => u.id === uid));
+                const pairingTask = pairing.taskId ? tasks.find((t) => t.id === pairing.taskId) : null;
+                const realm = REALM_MAP[pairing.realmSlug];
+                const status = pairing.completed
+                  ? "Completed"
+                  : pairing.sharedReceiptIds.length > 0
+                  ? "In progress"
+                  : "Not started";
+                const statusColor = pairing.completed
+                  ? "#4ADE80"
+                  : pairing.sharedReceiptIds.length > 0
+                  ? "#BFFF00"
+                  : "#71717A";
+
+                return (
+                  <motion.div
+                    key={pairing.id}
+                    className="rounded-xl bg-[#141418] p-4 space-y-3"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                          {u1 && (
+                            <div className="rounded-full ring-2 ring-[#141418]">
+                              <UserAvatar user={u1} size="sm" />
+                            </div>
+                          )}
+                          {u2 && (
+                            <div className="rounded-full ring-2 ring-[#141418]">
+                              <UserAvatar user={u2} size="sm" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-[#F0F0F5]">
+                            {u1?.displayName.split(" ")[0]} & {u2?.displayName.split(" ")[0]}
+                          </p>
+                        </div>
+                      </div>
+                      <RealmBadge slug={pairing.realmSlug} size="sm" />
+                    </div>
+
+                    {pairingTask && (
+                      <p className="text-xs text-[#A1A1AA]">{pairingTask.title}</p>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{ color: statusColor }}
+                      >
+                        {status}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-[#71717A]">
+                        View challenge
+                        <ChevronRight className="h-3 w-3" />
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Pods list view
   return (
     <div className="flex flex-col pb-24">
       <PageHeader title="Friends" />
 
-      <Tabs defaultValue="groups" className="mt-2 px-4">
-        <TabsList className="w-full bg-[#141418] rounded-2xl p-1">
-          <TabsTrigger value="groups" className="flex-1 rounded-xl data-active:bg-[#F0F0F5] data-active:text-[#0A0A0C] text-[#71717A]">
-            Groups
-          </TabsTrigger>
-          <TabsTrigger value="duo" className="flex-1 rounded-xl data-active:bg-[#F0F0F5] data-active:text-[#0A0A0C] text-[#71717A]">
-            Duo
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex flex-col gap-4 px-4 pt-2">
+        <p className="text-sm text-[#71717A]">Your circles</p>
 
-        {/* Groups Tab */}
-        <TabsContent value="groups">
-          <div className="flex flex-col gap-6 pt-4">
-            {/* Quick stats */}
-            <motion.div
-              className="flex items-center justify-between rounded-2xl bg-[#141418] px-4 py-3"
-              initial={{ opacity: 0, y: 8 }}
+        {userGroups.map((group, gi) => {
+          const members = users.filter((u) => group.memberIds.includes(u.id));
+          const recentReceipts = receipts
+            .filter((r) => group.memberIds.includes(r.userId) && !r.isPrivate)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          const activeCount = members.filter((m) => m.stats.currentRun > 0).length;
+
+          return (
+            <motion.button
+              key={group.id}
+              className="w-full rounded-2xl bg-[#141418] p-4 text-left space-y-3 transition-colors hover:bg-[#1a1a1f]"
+              onClick={() => setSelectedGroup(group)}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
+              transition={{ delay: 0.05 + gi * 0.08, duration: 0.4 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="flex flex-col">
-                <span className="text-xs text-[#71717A]">
-                  Top realm this week
-                </span>
-                <span className="text-sm font-semibold">
-                  {REALM_MAP.food.emoji} {topRealm}
-                </span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-[#71717A]">
-                  Group tasks
-                </span>
-                <span className="text-sm font-semibold">{totalGroupTasks}</span>
-              </div>
-            </motion.div>
-
-            {userGroups.map((group, gi) => {
-              const members = users.filter((u) =>
-                group.memberIds.includes(u.id)
-              );
-
-              return (
-                <motion.div
-                  key={group.id}
-                  className="flex flex-col gap-3"
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: 0.15 + gi * 0.1,
-                    duration: 0.4,
-                  }}
-                >
-                  <PodHeader
-                    group={group}
-                    memberCount={members.length}
-                  />
-                  <MemberList members={members} />
-                </motion.div>
-              );
-            })}
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-            >
-              <InviteCard />
-            </motion.div>
-          </div>
-        </TabsContent>
-
-        {/* Duo Tab */}
-        <TabsContent value="duo">
-          <div className="flex flex-col gap-6 pt-4">
-            {duoPairings.map((pairing, i) => {
-              const realm = REALM_MAP[pairing.realmSlug];
-              return (
-                <motion.div
-                  key={pairing.id}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: 0.1 + i * 0.08,
-                    duration: 0.4,
-                  }}
-                >
-                  <DuoPairing
-                    pairing={pairing}
-                    users={users}
-                    realm={realm}
-                  />
-                </motion.div>
-              );
-            })}
-
-            {/* Extended circle matching toggle */}
-            <motion.div
-              className="rounded-2xl bg-[#141418] p-4"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.4 }}
-            >
+              {/* Header row */}
               <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold">
-                    Extended circle matching
-                  </span>
-                  <span className="text-xs text-[#71717A]">
-                    Match with friends of friends
-                  </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{group.emoji}</span>
+                  <div>
+                    <h3 className="text-base font-bold text-[#F0F0F5]">{group.name}</h3>
+                    <p className="text-xs text-[#71717A]">
+                      {members.length} members · {activeCount} active
+                    </p>
+                  </div>
                 </div>
-                <Switch />
+                <ChevronRight className="h-5 w-5 text-[#71717A]" />
               </div>
 
-              <p className="mt-3 text-xs leading-relaxed text-[#71717A]/60">
-                When enabled, you may be matched with 2nd-degree connections
-                -- friends of your friends who share similar realms and vibes.
-                This expands your duo pool beyond your immediate circle.
-              </p>
-            </motion.div>
-          </div>
-        </TabsContent>
-      </Tabs>
+              {/* Member avatars */}
+              <div className="flex -space-x-1.5">
+                {members.slice(0, 6).map((m) => (
+                  <div key={m.id} className="rounded-full ring-2 ring-[#141418]">
+                    <UserAvatar user={m} size="sm" />
+                  </div>
+                ))}
+                {members.length > 6 && (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.06] ring-2 ring-[#141418] text-[10px] font-medium text-[#71717A]">
+                    +{members.length - 6}
+                  </div>
+                )}
+              </div>
+
+              {/* Recent activity hint */}
+              {recentReceipts.length > 0 && (
+                <p className="text-[11px] text-[#71717A]">
+                  {recentReceipts.length} receipts this week
+                </p>
+              )}
+            </motion.button>
+          );
+        })}
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          <InviteCard />
+        </motion.div>
+      </div>
     </div>
   );
 }
